@@ -4,11 +4,15 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
 	addr := flag.String("addr", ":8080", "Port Number Of Your Server")
 	flag.Parse()
+
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stderr, "ERROR\r", log.Ldate|log.Ltime|log.Lshortfile)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
@@ -18,9 +22,14 @@ func main() {
 	fileServer := http.FileServer(http.Dir("./ui/static"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	log.Printf("Server Listinig on http://localhost%s", *addr)
+	sev := &http.Server{
+		Addr:     *addr,
+		ErrorLog: errorLog,
+		Handler:  mux,
+	}
+	infoLog.Printf("Starting Server on http://localhost%s", *addr)
 
-	err := http.ListenAndServe(*addr, mux)
+	err := sev.ListenAndServe()
 
-	log.Fatal(err)
+	errorLog.Fatal(err)
 }
