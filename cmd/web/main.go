@@ -7,7 +7,9 @@ import (
 )
 
 func main() {
-	// 2 - router
+	addr := flag.String("addr", ":8080", "Port Number Of Your Server")
+	flag.Parse()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
 	mux.HandleFunc("/snippet", showSnippet)
@@ -16,10 +18,9 @@ func main() {
 	fileServer := http.FileServer(http.Dir("./ui/static"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	flag.Parse()
-	log.Println("Server Listinig on http://localhost:8080")
-	// 3 - server
-	err := http.ListenAndServe(":8080", mux)
+	log.Printf("Server Listinig on http://localhost%s", *addr)
+
+	err := http.ListenAndServe(*addr, mux)
 
 	log.Fatal(err)
 }
